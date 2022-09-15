@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.github.enbrain.jdtls.spongepowered.mixin</groupId>
+  <artifactId>parent</artifactId>
+  <name>${base.name} :: Parent</name>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+  <properties>
+    <base.name>JDTLS Spongepowered Mixin Extension</base.name>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <tycho-version>2.7.3</tycho-version>
+  </properties>
+  <modules>
+    <module>io.github.enbrain.jdtls.spongepowered.mixin.plugin</module>
+  </modules>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>target-platform-configuration</artifactId>
+          <version>${tycho-version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <repositories>
+    <repository>
+      <id>202209</id>
+      <layout>p2</layout>
+      <url>https://download.eclipse.org/releases/2022-09/202209021000/</url>
+    </repository>
+    <repository>
+      <id>JDT.LS</id>
+      <layout>p2</layout>
+      <url>https://download.eclipse.org/jdtls/snapshots/repository/latest/</url>
+    </repository>
+  </repositories>
+</project>

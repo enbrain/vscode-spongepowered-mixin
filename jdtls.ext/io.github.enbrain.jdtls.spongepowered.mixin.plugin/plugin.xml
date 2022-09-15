@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <extension point="org.eclipse.jdt.ls.core.delegateCommandHandler">
+    <delegateCommandHandler class="io.github.enbrain.jdtls.spongepowered.mixin.DelegateCommandHandler">
+      <command id="spongepowered.mixin.completion" />
+    </delegateCommandHandler>
+  </extension>
+</plugin>

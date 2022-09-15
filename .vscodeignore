@@ -1,0 +1,13 @@
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.yarnrc
+vsc-extension-quickstart.md
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts
+
+jdtls.ext/**
+!jdtls.ext/io.github.enbrain.jdtls.spongepowered.mixin.plugin/target/io.github.enbrain.jdtls.spongepowered.mixin.plugin-0.1.0.jar
