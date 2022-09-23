@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
@@ -30,6 +31,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.eclipse.jdt.internal.core.BinaryMethod;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
+import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -275,7 +277,7 @@ public final class CompletionHandler {
         return null;
     }
 
-    private static List<IType> getTargetClasses(ASTNode root, ASTNode node) {
+    private static List<IType> getTargetClasses(ASTNode root, ASTNode node) throws JavaModelException {
         List<IType> result = new ArrayList<>();
 
         TypeDeclaration typeDeclaration = getEnclosingClass(root, node);
@@ -291,6 +293,16 @@ public final class CompletionHandler {
                             for (Object target : targets) {
                                 if (target instanceof ITypeBinding targetBinding) {
                                     result.add((IType) targetBinding.getJavaElement());
+                                }
+                            }
+                        } else if (pair.getName().equals("targets")) {
+                            Object[] targets = (Object[]) pair.getValue();
+                            for (Object target : targets) {
+                                if (target instanceof String targetString) {
+                                    for (IType type : findTypes(targetString)) {
+                                        result.add(type);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -520,5 +532,40 @@ public final class CompletionHandler {
                 }
             }, 0);
         }
+    }
+
+    private static List<IType> findTypes(String className) throws JavaModelException {
+        List<IType> result = new ArrayList<>();
+
+        String name = className.replace("/", ".").replace("$", ".");
+
+        for (IJavaProject project : ProjectUtils.getJavaProjects()) {
+            IType type = findType(project, name);
+            if (type != null) {
+                result.add(type);
+            }
+        }
+
+        return result;
+    }
+
+    private static IType findType(IJavaProject project, String className) throws JavaModelException {
+        IType type = project.findType(className);
+        if (type != null) {
+            return type;
+        }
+
+        int i = className.lastIndexOf('.');
+        if (i > 0) {
+            IType outerType = findType(project, className.substring(0, i));
+            if (outerType != null) {
+                IType innerType = outerType.getType(className.substring(i + 1));
+                if (innerType != null) {
+                    return innerType;
+                }
+            }
+        }
+
+        return null;
     }
 }
