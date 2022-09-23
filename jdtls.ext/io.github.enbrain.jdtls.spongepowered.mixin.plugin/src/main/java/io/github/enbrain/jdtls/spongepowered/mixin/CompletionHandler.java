@@ -206,7 +206,7 @@ public final class CompletionHandler {
 
                                             for (String field : collectAccessedFields(targetClasses, targetMethod,
                                                     opcode)) {
-                                                result.add(new CompletionItem(field, 2));
+                                                result.add(new CompletionItem(field, 4));
                                             }
                                             break;
                                         case "NEW":
