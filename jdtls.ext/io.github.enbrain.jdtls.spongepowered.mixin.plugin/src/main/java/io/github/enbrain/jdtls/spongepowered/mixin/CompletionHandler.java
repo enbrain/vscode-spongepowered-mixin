@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -30,6 +31,7 @@ import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.env.IBinaryMethod;
 import org.eclipse.jdt.internal.core.BinaryMethod;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.ls.core.internal.JDTUtils;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
@@ -89,6 +91,8 @@ public final class CompletionHandler {
             result.addAll(completeInjectorMethod(root, current));
             result.addAll(completeInjectionPointType(root, current));
             result.addAll(completeInjectionPointTarget(root, current));
+            result.addAll(completeAccessorField(root, current));
+            result.addAll(completeInvokerMethod(root, current));
         }
 
         return result;
@@ -221,6 +225,50 @@ public final class CompletionHandler {
 
                         }
 
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static List<CompletionItem> completeAccessorField(ASTNode root, ASTNode current) throws JavaModelException {
+        List<CompletionItem> result = new ArrayList<>();
+
+        if (current instanceof StringLiteral) {
+            Annotation accessorAnnotation = isMemberInAnnotation(current.getParent(), "value");
+            if (accessorAnnotation != null) {
+                ITypeBinding annotationType = accessorAnnotation.getTypeName().resolveTypeBinding();
+                if (annotationType != null) {
+                    String annotationName = annotationType.getQualifiedName();
+                    if (annotationName.equals("org.spongepowered.asm.mixin.gen.Accessor")) {
+                        List<IType> targetClasses = getTargetClasses(root, accessorAnnotation);
+                        for (String field : collectMemberFields(targetClasses)) {
+                            result.add(new CompletionItem(field, 4));
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static List<CompletionItem> completeInvokerMethod(ASTNode root, ASTNode current) throws JavaModelException {
+        List<CompletionItem> result = new ArrayList<>();
+
+        if (current instanceof StringLiteral) {
+            Annotation invokerAnnotation = isMemberInAnnotation(current.getParent(), "value");
+            if (invokerAnnotation != null) {
+                ITypeBinding annotationType = invokerAnnotation.getTypeName().resolveTypeBinding();
+                if (annotationType != null) {
+                    String annotationName = annotationType.getQualifiedName();
+                    if (annotationName.equals("org.spongepowered.asm.mixin.gen.Invoker")) {
+                        List<IType> targetClasses = getTargetClasses(root, invokerAnnotation);
+                        for (String method : collectMemberMethods(targetClasses)) {
+                            result.add(new CompletionItem(method, 2));
+                        }
                     }
                 }
             }
@@ -512,6 +560,34 @@ public final class CompletionHandler {
                 }
             }
         });
+
+        return List.copyOf(result);
+    }
+
+    private static List<String> collectMemberFields(List<IType> targetClasses) throws JavaModelException {
+        Set<String> result = new HashSet<>();
+
+        for (IType target : targetClasses) {
+            if (target instanceof JavaElement element) {
+                for (Object object : element.getChildrenOfType(8)) {
+                    if (object instanceof IField f) {
+                        result.add(f.getElementName());
+                    }
+                }
+            }
+        }
+
+        return List.copyOf(result);
+    }
+
+    private static List<String> collectMemberMethods(List<IType> targetClasses) throws JavaModelException {
+        Set<String> result = new HashSet<>();
+
+        for (IType target : targetClasses) {
+            for (IMethod method : target.getMethods()) {
+                result.add(method.isConstructor() ? "<init>" : method.getElementName());
+            }
+        }
 
         return List.copyOf(result);
     }
