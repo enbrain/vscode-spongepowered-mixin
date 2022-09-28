@@ -1,11 +1,14 @@
 package io.github.enbrain.jdtls.spongepowered.mixin;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -18,6 +21,7 @@ import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.internal.core.JavaElement;
 import org.eclipse.jdt.ls.core.internal.ProjectUtils;
 import org.objectweb.asm.Opcodes;
 
@@ -49,6 +53,8 @@ public final class Util {
     public static final String ACCESSOR_ANNOTATION = "org.spongepowered.asm.mixin.gen.Accessor";
 
     public static final String INVOKER_ANNOTATION = "org.spongepowered.asm.mixin.gen.Invoker";
+
+    public static final String SHADOW_ANNOTATION = "org.spongepowered.asm.mixin.Shadow";
 
     public static final int METHOD_ITEM = 2;
 
@@ -125,6 +131,34 @@ public final class Util {
             node = node.getParent();
         }
         return predicate.test(node) ? node : null;
+    }
+
+    public static List<String> collectFields(List<IType> targetClasses) throws JavaModelException {
+        Set<String> result = new HashSet<>();
+
+        for (IType target : targetClasses) {
+            if (target instanceof JavaElement element) {
+                for (Object object : element.getChildrenOfType(8)) {
+                    if (object instanceof IField f) {
+                        result.add(f.getElementName());
+                    }
+                }
+            }
+        }
+
+        return List.copyOf(result);
+    }
+
+    public static List<String> collectMethods(List<IType> targetClasses) throws JavaModelException {
+        Set<String> result = new HashSet<>();
+
+        for (IType target : targetClasses) {
+            for (IMethod method : target.getMethods()) {
+                result.add(method.isConstructor() ? "<init>" : method.getElementName());
+            }
+        }
+
+        return List.copyOf(result);
     }
 
     private static TypeDeclaration getEnclosingClass(ASTNode root, ASTNode node) {

@@ -21,6 +21,7 @@ import io.github.enbrain.jdtls.spongepowered.mixin.completionprovider.InjectionP
 import io.github.enbrain.jdtls.spongepowered.mixin.completionprovider.InjectionPointTypeCompletor;
 import io.github.enbrain.jdtls.spongepowered.mixin.completionprovider.InjectorMethodCompletor;
 import io.github.enbrain.jdtls.spongepowered.mixin.completionprovider.InvokerMethodCompletor;
+import io.github.enbrain.jdtls.spongepowered.mixin.completionprovider.ShadowMemberCompletor;
 
 public final class CompletionHandler {
     private CompletionHandler() {
@@ -31,7 +32,8 @@ public final class CompletionHandler {
             new InjectionPointTargetCompletor(),
             new InjectionPointTypeCompletor(),
             new InjectorMethodCompletor(),
-            new InvokerMethodCompletor());
+            new InvokerMethodCompletor(),
+            new ShadowMemberCompletor());
 
     public static List<CompletionItem> complete(String uri, int line, int column) throws JavaModelException {
         List<CompletionItem> result = new ArrayList<>();
